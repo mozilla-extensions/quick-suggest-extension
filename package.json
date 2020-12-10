@@ -37,10 +37,10 @@
     "lint": "eslint ./src ./tests && web-ext lint",
     "test:unit": "mocha ./tests/unit/",
     "test:browser": "./scripts/run-browser-tests.sh",
-    "build": "./scripts/build-addon.js",
+    "build": "npm-run-all clean build:src build:zip build:finalize",
+    "build:src": "./scripts/build-addon.js",
     "build:zip": "web-ext build",
     "build:finalize": "mv web-ext-artifacts/*.zip web-ext-artifacts/quicksuggest.xpi",
-    "build:dist": "npm-run-all clean build build:zip build:finalize",
     "clean": "rimraf web-ext-artifacts public",
     "start": "./scripts/build-addon.js watch"
   }
