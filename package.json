@@ -1,5 +1,6 @@
 {
   "name": "quick-suggest-extension",
+  "version": "0.0.1",
   "description": "WebExtension used for Firefox Quick Suggest experiments",
   "repository": "https://github.com/daleharvey/quick-suggest-extension",
   "private": true,
@@ -34,7 +35,7 @@
     "rollup-plugin-copy": "3.3.0"
   },
   "scripts": {
-    "lint": "eslint ./src ./tests && web-ext lint",
+    "lint": "npm run build && eslint ./src ./tests && web-ext lint --ignore-files=data/suggestions.json",
     "test:unit": "mocha ./tests/unit/",
     "test:browser": "./scripts/run-browser-tests.sh",
     "build": "npm-run-all clean build:src build:zip build:finalize",
