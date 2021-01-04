@@ -49,8 +49,8 @@ class UrlbarProvider {
     return results;
   }
 
-  async onViewUpdateRequested(payload) {
-    return this.getViewUpdate({ payload });
+  async onViewUpdateRequested(payload, idsByName) {
+    return this.getViewUpdate({ payload }, idsByName);
   }
 
   async onResultPicked(payload) {
