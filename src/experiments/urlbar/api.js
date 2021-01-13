@@ -40,6 +40,20 @@ XPCOMUtils.defineLazyPreferenceGetter(
   10
 );
 
+XPCOMUtils.defineLazyPreferenceGetter(
+  this,
+  "searchSuggestionsEnabled",
+  "browser.search.suggest.enabled",
+  true
+);
+
+XPCOMUtils.defineLazyPreferenceGetter(
+  this,
+  "privateSearchSuggestionsEnabled",
+  "browser.search.suggest.enabled.private",
+  false
+);
+
 let treeProvider = new KeywordTreeProvider();
 
 // TODO: Need a window reference to use performance.now I think.
@@ -60,6 +74,12 @@ this.experiments_urlbar = class extends ExtensionAPI {
     return {
       experiments: {
         urlbar: {
+          suggestionsEnabled: async isPrivate => {
+            if (isPrivate) {
+              return privateSearchSuggestionsEnabled;
+            }
+            return searchSuggestionsEnabled;
+          },
           matchSearchTerm: async phrase => {
             let result = await time(() => treeProvider.query(phrase));
             if (result) {

@@ -36,7 +36,15 @@ class ProviderDynamicQuickSuggest extends UrlbarProvider {
   }
 
   async isActive(queryContext) {
+    let queryInstance = {};
+    this.queryInstance = queryInstance;
+    if (!(await api.suggestionsEnabled(queryContext.isPrivate))) {
+      return false;
+    }
     this.matchedResult = await api.matchSearchTerm(queryContext.searchString);
+    if (this.queryInstance != queryInstance) {
+      return false;
+    }
     if (!this.matchedResult) {
       this._displayingResult = false;
     }

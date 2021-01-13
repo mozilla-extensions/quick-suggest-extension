@@ -55,6 +55,19 @@
             "description": "Search term to match"
           }
         ]
+      },
+      {
+        "name": "suggestionsEnabled",
+        "type": "function",
+        "async": true,
+        "description": "Determine whether suggestions should be shown or not.",
+        "parameters": [
+          {
+            "name": "isPrivate",
+            "type": "boolean",
+            "description": "Whether the query was performed in Private mode or not."
+          }
+        ]
       }
     ]
   }
