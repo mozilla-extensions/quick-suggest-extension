@@ -17,8 +17,11 @@ const ADDON_PATH = "firefox-quick-suggest-keyword.xpi";
 const ABOUT_BLANK = "about:blank";
 const URLBAR_PROVIDER_NAME = "ProviderDynamicQuickSuggest";
 
+const SUGGESTIONS_PREF = "browser.search.suggest.enabled";
+const PRIVATE_SUGGESTIONS_PREF = "browser.search.suggest.enabled.private";
+
 const ATTRIBUTION_URL =
-  "http://mochi.test:8888/browser/testing/extensions/browser/qs_attribution.sjs";
+  "http://mochi.test:8888/browser/testing/extensions/browser/qs_attribution.sjs?";
 
 // Use SIGNEDSTATE_MISSING when testing an unsigned, in-development version of
 // the add-on and SIGNEDSTATE_PRIVILEGED when testing the production add-on.
@@ -26,6 +29,11 @@ const EXPECTED_ADDON_SIGNED_STATE = AddonManager.SIGNEDSTATE_MISSING;
 // const EXPECTED_ADDON_SIGNED_STATE = AddonManager.SIGNEDSTATE_PRIVILEGED;
 
 SearchTestUtils.init(this);
+
+function sleep(ms) {
+  // eslint-disable-next-line mozilla/no-arbitrary-setTimeout
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function waitForProcessesScalars(
   aProcesses,
@@ -114,6 +122,55 @@ add_task(async function test_attribution() {
 
   Assert.equal(1, await getAttributionHits(), "Search should be attributed");
   SpecialPowers.setCharPref("browser.partnerlink.attributionURL", "");
+});
+
+add_task(async function test_suggestions_disabled() {
+  await PlacesUtils.history.clear();
+  await SpecialPowers.setBoolPref(SUGGESTIONS_PREF, false);
+
+  await withAddon(async () => {
+    await BrowserTestUtils.withNewTab(ABOUT_BLANK, async () => {
+      gURLBar.focus();
+      EventUtils.sendString("frab");
+      // We can't waitForResultAt because we don't want a result, give enough time
+      // that a result would most likely have appeared.
+      await sleep(500);
+      Assert.ok(
+        window.gURLBar.view._rows.children.length == 1,
+        "There are no additional suggestions"
+      );
+    });
+  });
+
+  SpecialPowers.clearUserPref(SUGGESTIONS_PREF);
+});
+
+add_task(async function test_suggestions_disabled_private() {
+  await PlacesUtils.history.clear();
+  await SpecialPowers.setBoolPref(SUGGESTIONS_PREF, true);
+  await SpecialPowers.setBoolPref(PRIVATE_SUGGESTIONS_PREF, false);
+
+  await withAddon(async () => {
+    let win = await BrowserTestUtils.openNewBrowserWindow({
+      private: true,
+    });
+    let browser = win.gBrowser.selectedTab.linkedBrowser;
+    BrowserTestUtils.loadURI(browser, ABOUT_BLANK);
+    await BrowserTestUtils.browserLoaded(browser, false, ABOUT_BLANK);
+    win.gURLBar.focus();
+    EventUtils.sendString("frab", win);
+    // We can't waitForResultAt because we don't want a result, give enough time
+    // that a result would most likely have appeared.
+    await sleep(500);
+    Assert.ok(
+      win.gURLBar.view._rows.children.length == 1,
+      "There are no additional suggestions"
+    );
+    await BrowserTestUtils.closeWindow(win);
+  });
+
+  SpecialPowers.clearUserPref(SUGGESTIONS_PREF);
+  SpecialPowers.clearUserPref(PRIVATE_SUGGESTIONS_PREF);
 });
 
 add_task(async function test_telemetry_no_impressions() {
